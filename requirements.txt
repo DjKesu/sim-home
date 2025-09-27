@@ -1,0 +1,8 @@
+torch
+trimesh
+torchvision
+torchaudio
+tetgen
+pyvista
+numpy
+fast-simplification
