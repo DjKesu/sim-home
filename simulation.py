@@ -9,6 +9,7 @@ class ClothSimulation:
         self.camera = None
         self.cloth = None
         self.robot = None
+        self.terrain = None
         
     def initialize_genesis(self):
         """Initialize Genesis with Metal backend"""
@@ -39,7 +40,31 @@ class ClothSimulation:
         )
         return plane
         
-    def add_cloth(self, mesh_file="assets/tshirt.glb", scale=0.3, position=(0, 0, 0.1)):
+    def add_terrain(self, position=(-6, -6, 0), size=(12.0, 12.0), n_subterrains=(1, 1)):
+        """Add uniform flat terrain to the scene
+        
+        Args:
+            position: Position of the terrain center
+            size: Size of the terrain (width, height)
+            n_subterrains: Number of subterrains in each dimension (creates a grid)
+        """
+        self.terrain = self.scene.add_entity(
+            morph=gs.morphs.Terrain(
+                pos=position,
+                n_subterrains=n_subterrains,
+                subterrain_size=size,
+                subterrain_types='flat_terrain',  # Use flat terrain for uniform surface
+                visualization=True,
+                collision=True,
+            ),
+            surface=gs.surfaces.Default(
+                vis_mode="visual",
+                color=(0.3, 0.3, 0.3),
+            ),
+        )
+        return self.terrain
+        
+    def add_cloth(self, mesh_file="assets/tshirt.glb", scale=0.2, position=(0, 0, 0.1)):
         """Add cloth entity to the scene"""
         self.cloth = self.scene.add_entity(
             material=gs.materials.PBD.Cloth(
@@ -132,6 +157,36 @@ class ClothSimulation:
 
         self.camera.stop_recording(save_to_filename=video_path, fps=fps)
         print(f"Simulation complete! Video saved to {video_path}")
+    
+    def add_light(self, position=(2.0, 2.0, 3.0), color=(1.0, 1.0, 1.0), intensity=20.0):
+        """Add light to the scene
+        
+        Args:
+            position: Position of the light (x, y, z)
+            color: Color of the light (r, g, b)
+            intensity: Intensity of the light
+        """
+        try:
+            # Try to add a directional light
+            self.scene.add_light(
+                pos=position,
+                dir=(0.0, -1.0, -1.0),  # Pointing downward and slightly backward
+                intensity=intensity,
+                directional=True,
+                castshadow=True
+            )
+            print(f"Light added at position {position}")
+            return True
+        except Exception as e:
+            print(f"Could not add light (Rasterizer may not support it): {e}")
+            print("Lighting will be handled automatically by the renderer")
+            return False
+    
+    def run_pi_0_5(self):
+        """Run the simulation with pi 0.5"""
+        self.scene.step()
+        self.camera.render()
+        return self.scene.step()
 
 def main():
     """Main simulation function"""
@@ -145,13 +200,19 @@ def main():
     sim.create_scene()
     
     # Add entities
-    sim.add_ground_plane()
+    sim.add_terrain()  # Use terrain instead of ground plane
     sim.add_cloth()
     sim.add_robot()
     sim.add_camera()
+    sim.add_light()
     
     # Build and run simulation
     sim.build_scene()
+    rgb, depth, segmentation, normal = sim.camera.render(rgb=True, depth=True, segmentation=True, normal=True)
+    print(f"RGB shape: {rgb.shape}")
+    print(f"Depth shape: {depth.shape}")
+    print(f"Segmentation shape: {segmentation.shape}")
+    print(f"Normal shape: {normal.shape}")
     sim.run_simulation()
 
 if __name__ == "__main__":

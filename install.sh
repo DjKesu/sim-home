@@ -125,6 +125,25 @@ install_packages() {
     print_success "All packages installed successfully"
 }
 
+# Setup openpi submodule
+setup_openpi() {
+    print_status "Setting up openpi submodule..."
+    
+    if [ -f ".gitmodules" ]; then
+        print_status "Initializing and updating submodules..."
+        git submodule update --init --recursive
+        
+        # Check if openpi directory exists and has content
+        if [ -d "openpi" ] && [ "$(ls -A openpi)" ]; then
+            print_success "OpenPI submodule initialized successfully. Check readme to setup complete environment."
+        else
+            print_warning "OpenPI submodule may not be properly initialized"
+        fi
+    else
+        print_warning "No .gitmodules file found - skipping submodule setup"
+    fi
+}
+
 # Create output directory
 create_directories() {
     print_status "Creating output directories..."
@@ -142,6 +161,7 @@ main() {
     install_uv
     setup_environment
     install_packages
+    setup_openpi
     create_directories
     
     print_success "Setup complete!"

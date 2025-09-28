@@ -215,4 +215,9 @@ genesis_sim_home/
 assets/*
 
 # output
+output/*openpi/
+
+
+openpi/*
+
 output/*

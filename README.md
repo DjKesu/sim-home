@@ -9,3 +9,5 @@ Ask Kesu for assets:
 
 Koch arm mjcf from this link:
 https://github.com/google-deepmind/mujoco_menagerie/tree/main/low_cost_robot_arm
+
+Openpi repo for running inference on the model with pi models in simulation
